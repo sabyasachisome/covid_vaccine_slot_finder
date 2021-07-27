@@ -6,6 +6,8 @@ import json
 class LocationAssigner:
     def __init__(self, *args) -> None:
         self.config_obj= args[0]
+        self.dose_type= 'available_capacity_dose1' if self.config_obj.items('dose_type')[0][1]==1 else 'available_capacity_dose2'
+        print(self.dose_type)
         self.district_url_param= {}
         for tuple_idx in range(len(self.config_obj.items('location_details'))):
             # setattr(self, config_obj.items('location_details')[tuple_idx][0], config_obj.items('location_details')[tuple_idx][1])
@@ -24,12 +26,10 @@ class VaccineGenerator(LocationAssigner, ObjectModifier):
             pass
         for idx in range(len(resp_dict_val)):
             # print(resp_dict_val[idx])
-            if int(resp_dict_val[idx].get('available_capacity'))>0 and resp_dict_val[idx].get('min_age_limit')< int(self.config_obj.get('age_details','age')):
-                # print('yes')
-                # print(resp_dict_val[idx])
+            if int(resp_dict_val[idx].get('available_capacity'))>0 and resp_dict_val[idx].get('min_age_limit')< int(self.config_obj.get('age_details','age'))\
+            and int(resp_dict_val[idx].get(self.dose_type))>0:
                 print(resp_dict_val[idx])
                 print(resp_dict_val[idx].get('available_capacity'))
-                # print(resp_dict_val[idx].get('min_age_limit'))
 
 
 
