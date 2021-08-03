@@ -1,3 +1,5 @@
 test.py
 test1.py
 __pycache__
+.ipynb_checkpoints
+*.ipynb
