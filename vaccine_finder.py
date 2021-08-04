@@ -11,7 +11,8 @@ class DetailsAssigner:
         self.config_obj= args[0]
         self.dose_type= 'available_capacity_dose1' if int(self.config_obj.items('dose_type')[0][1])==1 else 'available_capacity_dose2'
         self.age_details= self.config_obj.items('age_details')[0][1]
-        # self.vaccine_name= 'COVISHIELD' if self.config_obj.get('vaccine_name','COVISHIELD')==1 else 'COVAXIN' if self.config_obj.get('vaccine_name','COVAXIN')==1 else 'both'
+        self.vaccine_name= 'COVISHIELD' if int(self.config_obj.get('vaccine_name','covishield'))!=0 and int(self.config_obj.get('vaccine_name','covaxin'))==0 else 'COVAXIN' if int(self.config_obj.get('vaccine_name','covaxin'))!=0 and int(self.config_obj.get('vaccine_name','covishield')) ==0 else 'any'
+        print(self.vaccine_name)
         print('checking for age {} and dose number {}'.format(self.age_details,self.dose_type))
 
 class ObjectModifier:
@@ -44,6 +45,16 @@ class VaccineGenerator(DetailsAssigner, ObjectModifier):
         for dict_elem in centre_dict['centers']:
             self.centre_ids.add(dict_elem['center_id'])
 
+    def filter_specific_vaccine(self, vaccine_available_dict):
+        print(vaccine_available_dict.items())
+        new_dict= {}
+        if self.vaccine_name!='any':
+            for key,val in vaccine_available_dict.items():
+                if val[0][5]==self.vaccine_name:
+                    new_dict[key]=val[0]
+            return new_dict
+        return vaccine_available_dict
+
     def parse_json(self, vaccine_available_centre_detailed_list):
         dose_type= self.dose_type
         age= int(self.age_details)
@@ -54,6 +65,7 @@ class VaccineGenerator(DetailsAssigner, ObjectModifier):
         #     print(vaccine_available_centre_detailed_list[centre_idx])
             centre_details= [vaccine_available_centre_detailed_list[centre_idx]['name'],vaccine_available_centre_detailed_list[centre_idx]['address'],vaccine_available_centre_detailed_list[centre_idx]['block_name'],vaccine_available_centre_detailed_list[centre_idx]['pincode']]
             for session_idx in range(len(vaccine_available_centre_detailed_list[centre_idx]['sessions'])):
+                # check part for age and dose type
                 if vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx][dose_type]>0 and vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx]['min_age_limit']<age:
                     slot_details_value= [vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx]['date'],vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx]['vaccine'],dose_type, vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx][dose_type],vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx]['min_age_limit'],vaccine_available_centre_detailed_list[centre_idx]['sessions'][session_idx]['slots']]
                     slot_val=[]
@@ -79,9 +91,12 @@ class VaccineGenerator(DetailsAssigner, ObjectModifier):
                 vaccine_available_centre_detailed_list.append(availability_details_dict['centers'])
                 test_list.append(availability_details_dict)
         vaccine_available_dict= self.parse_json(vaccine_available_centre_detailed_list)
-        print(vaccine_available_dict)
+        # print(vaccine_available_dict)
         if len(vaccine_available_dict)>=1:
-            os.system("afplay " + 'vaccine_alert.WAV')
+            specific_vaccine_available_dict= self.filter_specific_vaccine(vaccine_available_dict)
+            if len(specific_vaccine_available_dict)>=1:
+                print(specific_vaccine_available_dict)
+                os.system("afplay " + 'vaccine_alert.WAV')
 
 if __name__ == '__main__':
     config_file_abs_path= os.path.abspath(os.path.join(os.path.dirname(__file__),'config_details.ini'))
