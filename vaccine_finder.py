@@ -12,7 +12,7 @@ class DetailsAssigner:
         self.dose_type= 'available_capacity_dose1' if int(self.config_obj.items('dose_type')[0][1])==1 else 'available_capacity_dose2'
         self.age_details= self.config_obj.items('age_details')[0][1]
         self.vaccine_name= 'COVISHIELD' if int(self.config_obj.get('vaccine_name','covishield'))!=0 and int(self.config_obj.get('vaccine_name','covaxin'))==0 else 'COVAXIN' if int(self.config_obj.get('vaccine_name','covaxin'))!=0 and int(self.config_obj.get('vaccine_name','covishield')) ==0 else 'any'
-        print(self.vaccine_name)
+        # print(self.vaccine_name)
         print('checking for age {} and dose number {}'.format(self.age_details,self.dose_type))
 
 class ObjectModifier:
@@ -46,7 +46,6 @@ class VaccineGenerator(DetailsAssigner, ObjectModifier):
             self.centre_ids.add(dict_elem['center_id'])
 
     def filter_specific_vaccine(self, vaccine_available_dict):
-        print(vaccine_available_dict.items())
         new_dict= {}
         if self.vaccine_name!='any':
             for key,val in vaccine_available_dict.items():
